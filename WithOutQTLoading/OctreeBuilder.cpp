@@ -4,6 +4,9 @@
 #include<mutex>
 #include<osg/ShapeDrawable>
 #include<osg/material>
+#include<algorithm>
+
+using std::sort;
 //#include<osgUtil/Statics>
 std::mutex mut;
 int OctreeBuilder::eleNum = 0;
@@ -98,13 +101,26 @@ void OctreeBuilder::generateLOD()
 	//build(0, mybox.getSingalBoundingBox(my->getRootNode()), mybox.getBoxes());
 	osg::BoundingBox totalBox = mybox.getSingalBoundingBox(my->getRootNode());
 	PreHandle(totalBox, mybox.getBoxes());
-	int j = my->getExternEle().size();
 	//printf("\n%d", j);
-	if (j == 0)
+	if (my->getExternEle().size() == 0)//ÊÇ¿ÕºÐ×Ó
 	{
-		resultNode->addChild(generateBox(totalBox._min, totalBox._max));
+		int k = my->getInternEle().size()/10;
+		for (int i = 0; i < k; ++i)
+		{
+			resultNode->addChild(my->getInternEle()[i]);
+		}
 	}
-	printf("total time %d", time(0) - begin);
+	if( my->getInternEle().size() ==0)
+	{
+		int k = my->getExternEle().size() / 10;
+		int sz = my->getExternEle().size();
+		for (int i = k; i < sz; ++i)
+		{
+			my->getInternEle().emplace_back(my->getExternEle()[i]);
+		}
+		my->getExternEle().resize(k + 1);
+	}
+	//printf("total time %d", time(0) - begin);
 
 	for (int i=0;i<pagedLODs.size();++i)
 	{
@@ -114,7 +130,8 @@ void OctreeBuilder::generateLOD()
 		//float radius = (total._max - total._min).length()*0.5f;
 		float dis = radius_[i] * 3.0f;
 		//float total_len = (totalBox._max - totalBox._min).length()/15;
-		if (dis > 80) dis = 100;
+		if (dis > 200) dis = 150;
+		if (dis < 10) dis = 20;
 		newPage->setRange(0, 0, dis);
 		newPage->setCenter(centers[i]);
 		newPage->setRadius(radius_[i]);

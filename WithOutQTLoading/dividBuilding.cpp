@@ -8,7 +8,12 @@ string dividBuilding::handleOSG()
 {
 	printf("begin dividing");
 	rootNode = osgDB::readNodeFile(fileName);
-	if (!rootNode) return "file no exist";
+	if (!rootNode)
+	{
+		printf("file no exist");
+		exit(1);
+	}
+		
 	osg::ref_ptr<osg::Node> rootGroup = rootNode->asGroup();
 	if (!rootGroup) return "Error: From root node to group";
 	stack<osg::ref_ptr<osg::Node>> pendingNodes;
@@ -106,6 +111,10 @@ void splitGeo(osg::Geode* Geode, int n, vector <osg::ref_ptr<osg::Node>>& contai
 {
 	if (!Geode->getNumDrawables()) return;
 	osg::ref_ptr<osg::Geometry> Geom = Geode->getDrawable(0)->asGeometry();
+	if (Geom == NULL) {
+		printf("geom is null\n");
+		return;
+	}
 	osg::Vec3Array* curVecs = dynamic_cast<osg::Vec3Array*>(Geom->getVertexArray());
 	int totalSize = curVecs->getNumElements();
 	if (totalSize <= n)
